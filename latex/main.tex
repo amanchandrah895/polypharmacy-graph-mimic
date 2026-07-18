@@ -5,6 +5,7 @@
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{cite}
+\usepackage{stfloats} % allow double-column (figure*) floats at page bottom too, not just top
 
 \begin{document}
 
@@ -317,7 +318,7 @@ These rankings have \emph{not} been cross-referenced against a clinical
 drug-drug-interaction database and should not be interpreted as validated
 interactions without that manual check.
 
-\begin{figure*}[t]
+\begin{figure*}[!tb]
 \centering
 \includegraphics[width=\linewidth]{figures/top_risk_drugs.pdf}
 \caption{Top perturbation-ranked risk-associated drugs per outcome (reliability-filtered, $\geq$10 high-risk patients per drug).}
