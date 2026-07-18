@@ -1,6 +1,6 @@
 \begin{table*}[t]
 \centering
-\caption{AUROC (95\% bootstrap CI), AUPRC, F1, and Brier score for every outcome $\times$ feature-set $\times$ model combination. delirium\_label / tabular rows are the leakage-corrected refit (see Section~\ref{sec:methods}).}
+\caption{AUROC (95\% bootstrap CI), AUPRC, F1, and Brier score for every outcome $\times$ feature-set $\times$ model combination. delirium\_label / tabular rows are the leakage-corrected refit; pre-correction AUROC (before excluding delirium-defining drug columns) shown alongside for transparency (see Section~\ref{sec:methods}).}
 \label{tab:model_results}
 \begin{tabular}{llllllll}
 \toprule
@@ -27,10 +27,10 @@ Delirium (proxy) & Graph-theoretic & mlp & 0.759 & [0.748, 0.769] & 0.561 & 0.43
  &  & xgboost & 0.755 & [0.744, 0.765] & 0.551 & 0.419 & 0.162 \\
  &  & logistic regression & 0.738 & [0.727, 0.749] & 0.521 & 0.349 & 0.167 \\
  &  & random forest & 0.718 & [0.707, 0.729] & 0.505 & 0.438 & 0.176 \\
-Delirium (proxy) & Tabular baseline & xgboost & 0.858 & [0.850, 0.866] & 0.704 & 0.606 & 0.128 \\
- &  & random forest & 0.848 & [0.839, 0.856] & 0.693 & 0.540 & 0.135 \\
- &  & logistic regression & 0.784 & [0.773, 0.795] & 0.557 & 0.565 & 0.173 \\
- &  & mlp & 0.772 & [0.762, 0.782] & 0.566 & 0.545 & 0.208 \\
+Delirium (proxy) & Tabular baseline & xgboost & 0.858 (pre-corr.\ 0.944) & [0.850, 0.866] & 0.704 & 0.606 & 0.128 \\
+ &  & random forest & 0.848 (pre-corr.\ 0.916) & [0.839, 0.856] & 0.693 & 0.540 & 0.135 \\
+ &  & logistic regression & 0.784 (pre-corr.\ 0.855) & [0.773, 0.795] & 0.557 & 0.565 & 0.173 \\
+ &  & mlp & 0.772 (pre-corr.\ 0.862) & [0.762, 0.782] & 0.566 & 0.545 & 0.208 \\
 \addlinespace
 Bleeding (proxy) & Graph embedding & xgboost & 0.838 & [0.824, 0.852] & 0.384 & 0.237 & 0.065 \\
  &  & logistic regression & 0.810 & [0.795, 0.825] & 0.317 & 0.154 & 0.069 \\

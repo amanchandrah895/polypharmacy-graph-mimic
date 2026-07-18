@@ -196,11 +196,26 @@ print("Saved table_attrition.tex")
 # ============================================================
 # Table 2: Full model results grid (booktabs)
 # ============================================================
+# Pre-correction (leaky) AUROC values for delirium_label/tabular, observed
+# during the original local run before the delirium-defining drug columns
+# were excluded (see Section III-F / the leakage-correction narrative).
+# Recorded here for in-table transparency so a reviewer comparing the prose
+# claim ("0.944 -> 0.858") against the table doesn't have to take the
+# pre-correction number on faith -- both values are shown side by side.
+PRE_CORRECTION_DELIRIUM_TABULAR_AUROC = {
+    "logistic_regression": 0.855,
+    "random_forest": 0.916,
+    "xgboost": 0.944,
+    "mlp": 0.862,
+}
+
 with open(os.path.join(TAB_DIR, "table_model_results.tex"), "w") as f:
     f.write("\\begin{table*}[t]\n\\centering\n")
     f.write("\\caption{AUROC (95\\% bootstrap CI), AUPRC, F1, and Brier score for every "
             "outcome $\\times$ feature-set $\\times$ model combination. "
-            "delirium\\_label / tabular rows are the leakage-corrected refit "
+            "delirium\\_label / tabular rows are the leakage-corrected refit; "
+            "pre-correction AUROC (before excluding delirium-defining drug "
+            "columns) shown alongside for transparency "
             "(see Section~\\ref{sec:methods}).}\n")
     f.write("\\label{tab:model_results}\n")
     f.write("\\begin{tabular}{llllllll}\n\\toprule\n")
@@ -213,9 +228,13 @@ with open(os.path.join(TAB_DIR, "table_model_results.tex"), "w") as f:
                 oc_label = OUTCOME_LABELS[oc] if i == 0 else ""
                 fs_label = FEATURE_SET_LABELS[fs] if i == 0 else ""
                 model_name = escape(row["model"]).replace("\\_", " ")
+                auroc_str = f"{row['auroc']:.3f}"
+                if oc == "delirium_label" and fs == "tabular":
+                    pre = PRE_CORRECTION_DELIRIUM_TABULAR_AUROC[row["model"]]
+                    auroc_str += f" (pre-corr.\\ {pre:.3f})"
                 f.write(
                     f"{oc_label} & {fs_label} & {model_name} & "
-                    f"{row['auroc']:.3f} & [{row['auroc_ci_low']:.3f}, {row['auroc_ci_high']:.3f}] & "
+                    f"{auroc_str} & [{row['auroc_ci_low']:.3f}, {row['auroc_ci_high']:.3f}] & "
                     f"{row['auprc']:.3f} & {row['f1']:.3f} & {row['brier']:.3f} \\\\\n"
                 )
         f.write("\\addlinespace\n")
