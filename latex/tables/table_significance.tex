@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\caption{Paired bootstrap significance test: node2vec embedding vs.\ leakage-corrected tabular baseline, delirium outcome, identical 5-fold CV splits, 2{,}000 resamples.}
+\label{tab:significance}
+\begin{tabular}{lr}
+\toprule
+Quantity & Value \\
+\midrule
+AUROC (embedding) & 0.8760 \\
+AUROC (tabular, leak-free) & 0.8582 \\
+Observed $\Delta$AUROC & 0.0178 \\
+95\% CI on $\Delta$ & [0.0112, 0.0249] \\
+$p$ (approx., two-sided) & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table}

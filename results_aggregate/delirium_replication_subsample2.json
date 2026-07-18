@@ -1,0 +1,19 @@
+{
+  "subsample": 2,
+  "seed": 123,
+  "n_admissions": 9976,
+  "overlap_with_original_sample": 0,
+  "auroc_embedding": 0.8713563700836879,
+  "auroc_tabular_leakfree": 0.8561600080986036,
+  "observed_delta": 0.015196361985084339,
+  "delta_ci_95_low": 0.008124669800227077,
+  "delta_ci_95_high": 0.021770066445193248,
+  "ci_excludes_zero": true,
+  "approx_two_sided_p": 0.0,
+  "original_subsample_delta": 0.017772505725106247,
+  "original_subsample_ci": [
+    0.011175429691353012,
+    0.024940006177849628
+  ],
+  "effect_direction_replicated": true
+}

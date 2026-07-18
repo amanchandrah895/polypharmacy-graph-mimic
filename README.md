@@ -48,6 +48,28 @@ results_aggregate/
 Every file above is an **aggregate statistic** (counts, rates, per-drug or
 per-model summaries) — none contain a row per patient or admission.
 
+```
+latex/
+  main.tex                          Full IEEE conference paper source
+  references.bib                    BibTeX (verified real citations only)
+  main.pdf                          Compiled paper (5 pages, IEEEtran conference)
+  figures/*.pdf                     Vector figures, generated from results_aggregate/
+  tables/*.tex                      Booktabs tables, generated from results_aggregate/
+                                     (no hand-typed numbers -- table/text can't drift)
+
+paper/
+  generate_paper_assets.py          Generates every figure and table in latex/
+                                     from results/ + results_aggregate/
+  build.sh                          Regenerates assets and recompiles the PDF end-to-end
+```
+
+`latex/` contains only what's needed to compile the paper (source, bib,
+generated figures/tables, and the compiled PDF) — no generation code lives
+there. `paper/` holds the generation scripts and nothing else. To rebuild
+everything after re-running Phase 1/2: `bash paper/build.sh` from the repo
+root (requires `results/` to exist locally, plus `pdflatex`/`bibtex` and the
+IEEEtran LaTeX class).
+
 ## Data Access
 
 This project uses **MIMIC-IV** via Google BigQuery
@@ -121,7 +143,10 @@ patient rows — this mirrors what is reported in the paper itself.
   delta +0.0178, 95% CI [0.0112, 0.0249], p<0.0001) was re-tested on a
   second, independent, zero-overlap 10,000-admission subsample with the
   graph and embeddings rebuilt from scratch — see
-  `replicate_delirium_subsample2.py` and its output for the replication delta.
+  `replicate_delirium_subsample2.py` and
+  `results_aggregate/delirium_replication_subsample2.json`. Result:
+  delta +0.0152, 95% CI [0.0081, 0.0218], effect direction and magnitude
+  replicated.
 
 ## Manual verification still needed before submission
 

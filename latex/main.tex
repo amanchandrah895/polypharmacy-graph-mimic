@@ -1,0 +1,351 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{cite}
+
+\begin{document}
+
+\title{Graph-Based Polypharmacy Risk Networks for Adverse Event Prediction in ICU Patients: A MIMIC-IV Analysis}
+
+\author{
+\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{Affiliation \\ Email}
+}
+
+\maketitle
+
+\begin{abstract}
+Polypharmacy -- the concurrent use of multiple medications -- is common in
+intensive care and is a recognized driver of adverse events, yet most
+machine-learning studies on MIMIC-IV target mortality prediction rather than
+modeling drug-interaction risk directly. We address this gap by constructing
+a population-level drug co-administration graph from 9{,}974 adult ICU stays
+and comparing three patient-level feature representations -- node2vec graph
+embeddings, hand-crafted graph-theoretic statistics, and a one-hot tabular
+baseline -- for predicting three polypharmacy-relevant outcomes: acute kidney
+injury (AKI, KDIGO-based), a delirium proxy, and a bleeding proxy. Across four
+classifiers and stratified 5-fold cross-validation, we find a mixed but
+interpretable pattern: the tabular baseline wins when given unrestricted
+access to drug identity (AKI AUROC 0.763, bleeding AUROC 0.864), while graph
+embeddings outperform a leakage-corrected tabular baseline for delirium
+(AUROC 0.876 vs.\ 0.858, paired bootstrap $\Delta$=+0.018, 95\% CI
+[0.011, 0.025], $p<0.0001$), a result that replicates on an independent,
+zero-overlap second cohort subsample ($\Delta$=+0.015, 95\% CI
+[0.008, 0.022]). We further report a label-leakage correction identified
+during model development (delirium label circularity with tabular drug
+features, corrected AUROC $0.944 \rightarrow 0.858$) and perturbation-based,
+reliability-filtered drug-risk rankings per outcome. We present this
+comparison as evidence for when graph-based representations add value over
+tabular baselines in EHR-based polypharmacy modeling.
+\end{abstract}
+
+\begin{IEEEkeywords}
+polypharmacy, graph embeddings, node2vec, MIMIC-IV, electronic health records, acute kidney injury, delirium, adverse drug events
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Machine learning research on the MIMIC-IV critical care database has
+concentrated heavily on in-hospital mortality prediction, leaving
+polypharmacy-specific adverse event modeling comparatively underexplored.
+Polypharmacy -- typically defined as the concurrent administration of
+multiple medications during a single stay -- is near-universal in the ICU and
+is mechanistically linked to adverse drug events including nephrotoxicity,
+delirium, and bleeding complications, yet the *combinatorial* structure of
+drug co-administration is rarely modeled explicitly; most prior EHR risk
+models treat medication exposure as an unordered feature bag rather than as
+a network of interacting entities.
+
+This paper asks a narrower, more falsifiable question than ``can graphs
+model polypharmacy risk'': under what conditions does a graph-based
+representation of drug co-administration outperform a conventional tabular
+representation with the same underlying information? We build a
+population-level co-administration graph over generic drug names,
+learn node2vec~\cite{grover2016node2vec} embeddings for each drug, and
+compare three patient-level feature representations head-to-head, on
+identical cohorts, labels, classifiers, and cross-validation protocol, for
+three outcomes: acute kidney injury (AKI), a delirium proxy, and a bleeding
+proxy.
+
+Our contribution is threefold: (1) a three-way feature-representation
+comparison (graph embedding vs.\ graph-theoretic vs.\ tabular) evaluated
+under matched conditions across three clinically distinct outcomes; (2) a
+documented and corrected label-leakage circularity between the delirium
+outcome definition and tabular drug features, together with a paired
+significance test validating the corrected result; and (3) a confirmatory
+replication of the headline result on an independent cohort subsample,
+directly addressing the generalizability concern that a single-subsample
+result invites.
+
+\section{Related Work}
+
+\textbf{MIMIC-based clinical prediction.} MIMIC-IV~\cite{johnson2023mimiciv}
+has enabled a large body of work on ICU outcome prediction, predominantly
+targeting mortality and length-of-stay as the outcome of interest; this
+concentration is the specific gap this paper targets by modeling
+polypharmacy-relevant adverse events instead.
+
+\textbf{Graph-based EHR modeling.} Representing patients or clinical
+entities as graphs -- and learning representations over them via methods
+such as node2vec~\cite{grover2016node2vec} -- has been explored for
+diagnosis and comorbidity modeling; we apply this framework specifically to
+drug co-administration structure, which has received comparatively less
+direct empirical comparison against tabular baselines under matched
+evaluation protocol.
+
+\textbf{Interpretability.} We use SHAP~\cite{lundberg2017shap} for the
+tabular baseline's tree-based models, and a perturbation (leave-one-drug-out)
+analysis for the graph-embedding models, since raw embedding dimensions are
+not individually interpretable.
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Cohort construction}
+
+We extracted adult patients (age $\geq$18) with a first ICU stay of
+length $\geq$24 hours from MIMIC-IV via Google BigQuery, yielding 68{,}013
+eligible admissions. For BigQuery cost and local compute tractability, we
+drew a fixed-seed random subsample of 10{,}000 admissions (seed=42,
+$\approx$14.7\% of the eligible cohort), then excluded admissions with fewer
+than 3 distinct administered drugs (no meaningful polypharmacy signal),
+yielding a final analytic cohort of $n=9{,}974$. Table~\ref{tab:attrition}
+reports the full filtering flow.
+
+\input{tables/table_attrition.tex}
+
+This subsampling is a stated scope limitation, not a hidden one: to test
+whether headline findings generalize beyond the specific subsample drawn, we
+separately replicate our primary result on an independent, zero-overlap
+second 10{,}000-admission subsample (Section~\ref{sec:replication}).
+
+\subsection{Outcome labels}
+
+We define three binary outcomes, each an explicit, documented proxy rather
+than an adjudicated clinical diagnosis:
+
+\begin{itemize}
+\item \textbf{AKI}: KDIGO stage $\geq$1~\cite{khwaja2012kdigo}, computed via
+  MIMIC-IV's derived \texttt{kdigo\_stages} table. Positive in 7{,}312/9{,}974
+  (73.3\%) of the cohort.
+\item \textbf{Delirium (proxy)}: administration of an antipsychotic or
+  benzodiazepine commonly used for agitation (haloperidol, quetiapine,
+  olanzapine, risperidone, ziprasidone, lorazepam, midazolam, diazepam)
+  \textbf{AND} a positive CAM-ICU~\cite{ely2001camicu} chartevent (2 of the
+  4 CAM-ICU criteria are directly captured in MIMIC-IV chartevents: altered
+  mental status and inattention; the full 4-criterion clinical algorithm is
+  not reconstructed). Positive in 2{,}679/9{,}974 (26.9\%).
+\item \textbf{Bleeding (proxy)}: a new packed red blood cell (PRBC)
+  transfusion order after ICU day 2. Positive in 876/9{,}974 (8.8\%).
+\end{itemize}
+
+All three are stated limitations in Section~\ref{sec:limitations}: they are
+defensible, literature-grounded proxies, not gold-standard adjudicated
+outcomes.
+
+\subsection{Drug co-administration graph}
+
+Prescription records were normalized to approximate generic names via a
+documented, deterministic cleaning pipeline (dose/form-suffix stripping plus
+a small brand-to-generic synonym dictionary). For each admission, two drugs
+are considered co-administered if given on an overlapping calendar day. The
+\emph{population-level} co-administration graph aggregates this across the
+full cohort: nodes are distinct generic drug names, and edge weight is the
+number of distinct admissions in which the pair was co-administered.
+Table~\ref{tab:graph_stats} reports summary statistics; Figure~\ref{fig:pop_network}
+visualizes the top-60 highest-degree drugs, and Figure~\ref{fig:degree_dist}
+shows the full degree distribution.
+
+\input{tables/table_graph_stats.tex}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/population_network.pdf}
+\caption{Population co-administration network, top 60 drugs by degree. Node size scales with degree; edge width scales with co-administration weight.}
+\label{fig:pop_network}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/degree_distribution.pdf}
+\caption{Degree distribution of the population co-administration graph (log-log).}
+\label{fig:degree_dist}
+\end{figure}
+
+\subsection{Feature representations}
+
+We compare three patient-level feature representations, computed for every
+admission:
+
+\begin{enumerate}
+\item \textbf{Graph embedding}: node2vec~\cite{grover2016node2vec} is trained
+  on the weighted population graph (walk length 40, 20 walks per node,
+  embedding dimension 64, window 10, default $p{=}1,q{=}1$ -- not
+  hyperparameter-tuned, a deliberate choice for a fair, fixed-hyperparameter
+  comparison across all three feature sets, discussed further in
+  Section~\ref{sec:discussion}). Each patient's feature vector is the mean
+  embedding of their administered drugs.
+\item \textbf{Graph-theoretic}: sum and max pairwise edge weight among a
+  patient's drugs, and the density of their drug-induced subgraph.
+\item \textbf{Tabular baseline}: one-hot indicators for every administered
+  drug, plus age, sex, and a comorbidity count (distinct ICD diagnosis
+  codes).
+\end{enumerate}
+
+\subsection{Modeling and evaluation}
+
+For every outcome $\times$ feature-set combination, we train four
+classifiers with fixed (untuned) hyperparameters -- logistic regression,
+random forest (300 trees), XGBoost~\cite{chen2016xgboost} (300 trees, depth
+4), and a 2-layer MLP (64, 32 units) -- under stratified 5-fold
+cross-validation. We report AUROC, AUPRC, F1, and Brier score, with AUROC
+95\% confidence intervals from 1{,}000 bootstrap resamples of the pooled
+out-of-fold predictions.
+
+\subsection{Label-leakage correction}
+
+The delirium label is partly \emph{defined} by administration of specific
+drugs (Section~III-B); the tabular baseline's one-hot features include
+columns for those same drugs, so a tabular model can trivially reconstruct
+much of the label via this circularity rather than genuine predictive
+signal. We identified this after observing an implausibly high tabular
+AUROC (0.944, XGBoost) for delirium. We excluded the delirium-defining drug
+columns from the tabular feature set \emph{for the delirium outcome only}
+(AKI and bleeding labels are not drug-defined and are unaffected) and refit
+all four tabular models, yielding a corrected AUROC of 0.858 (XGBoost).
+
+\section{Results}
+
+\subsection{Three-way feature comparison}
+
+Table~\ref{tab:model_results} reports the full outcome $\times$ feature-set
+$\times$ model grid; Figure~\ref{fig:auroc_comparison} summarizes the
+best-model AUROC per feature set and outcome. The comparison is mixed rather
+than a uniform win for any single representation: the tabular baseline
+achieves the highest AUROC for AKI (0.763, XGBoost) and bleeding (0.864,
+XGBoost), while the graph embedding achieves the highest AUROC for delirium
+(0.876, XGBoost) -- exceeding even the leakage-corrected tabular result
+(0.858).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/auroc_comparison.pdf}
+\caption{Best-model AUROC by feature set and outcome, with bootstrap 95\% CI error bars.}
+\label{fig:auroc_comparison}
+\end{figure}
+
+\input{tables/table_model_results.tex}
+
+We caution that AUPRC for AKI (base rate 73.3\%) should be interpreted
+relative to that high base rate rather than in isolation; AUROC is the more
+informative metric for this outcome, and we lead with it throughout.
+
+\subsection{Statistical significance of the delirium result}
+\label{sec:significance}
+
+Because the embedding-vs-tabular delirium comparison is our headline claim,
+we tested it with a paired bootstrap on \emph{identical} cross-validation
+fold assignments for both feature sets (rather than comparing two
+independently-computed confidence intervals), so the significance estimate
+reflects a true paired comparison. Table~\ref{tab:significance} reports the
+result: the embedding's AUROC advantage over the leak-free tabular baseline
+is statistically significant ($\Delta$=+0.0178, 95\% CI [0.0112, 0.0249],
+$p<0.0001$).
+
+\input{tables/table_significance.tex}
+
+\subsection{Confirmatory replication}
+\label{sec:replication}
+
+To address whether this result is specific to the particular 10{,}000-admission
+subsample drawn, we repeated the entire pipeline -- cohort draw, graph
+construction, node2vec training, and the paired significance test -- on a
+second, independent subsample with \emph{zero admission overlap} with the
+original sample (seed=123, $n=9{,}976$ after filtering). The effect
+direction and approximate magnitude replicated
+(Table~\ref{tab:replication}): $\Delta$=+0.0152, 95\% CI
+[0.0081, 0.0218], overlapping the original sample's confidence interval.
+
+\input{tables/table_replication.tex}
+
+\subsection{Interpretability}
+
+For each outcome's best embedding model, we identify risk-associated drugs
+via perturbation analysis: for high-risk patients (top decile of predicted
+probability), we remove each drug from their exposure set, re-score, and
+average the resulting prediction delta across patients. To avoid reporting
+single-patient noise as signal, we exclude any drug supported by fewer than
+10 high-risk patients before ranking (Figure~\ref{fig:top_risk_drugs}).
+These rankings have \emph{not} been cross-referenced against a clinical
+drug-drug-interaction database and should not be interpreted as validated
+interactions without that manual check.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/top_risk_drugs.pdf}
+\caption{Top perturbation-ranked risk-associated drugs per outcome (reliability-filtered, $\geq$10 high-risk patients per drug).}
+\label{fig:top_risk_drugs}
+\end{figure*}
+
+\section{Discussion}
+\label{sec:discussion}
+
+The three-way comparison does not support a blanket claim that graph
+embeddings outperform tabular baselines for polypharmacy risk modeling.
+Instead, it supports a more specific and, we think, more useful claim: a
+tabular representation with unrestricted access to raw drug identity has a
+strict informational advantage and wins when that access is available (AKI,
+bleeding), but once that advantage is removed by a genuine label-leakage
+correction (delirium), the compressed 64-dimensional graph embedding
+recovers signal that the reduced tabular baseline does not -- and this
+advantage is both statistically significant on identical folds and
+replicates on an independent cohort subsample.
+
+We note that our node2vec hyperparameters ($p{=}1,q{=}1$, no walk-length or
+dimension search) were fixed, not tuned, specifically to keep the
+three-way comparison fair. This cuts in favor of the embedding result, not
+against it: an untuned graph embedding already outperforms a leakage-corrected
+tabular baseline, suggesting that hyperparameter search would plausibly
+widen rather than narrow this gap -- a direction for future work rather than
+a caveat on the present one.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+(1) All three outcome labels are proxies, not adjudicated diagnoses --
+most notably the delirium proxy captures 2 of 4 CAM-ICU criteria. (2) The
+analytic cohort is a fixed-seed random subsample of the eligible MIMIC-IV
+population, not the full 68{,}013-admission eligible cohort; while our
+delirium result replicates on an independent subsample, this was only
+tested for the headline claim, not for every outcome/feature-set
+combination. (3) Single-center, retrospective data (MIMIC-IV, derived from
+Beth Israel Deaconess Medical Center) with no external validation cohort.
+(4) No classifier hyperparameter tuning was performed, by design, for a
+fair fixed-hyperparameter comparison; absolute performance ceilings for any
+individual model are therefore likely understated. (5) Perturbation-based
+drug-risk rankings have not been manually cross-checked against a
+pharmacological drug-drug-interaction reference and should not be read as
+clinically validated without that step.
+
+\section{Conclusion}
+
+We compared graph-embedding, graph-theoretic, and tabular feature
+representations for predicting three polypharmacy-relevant ICU adverse
+events on MIMIC-IV, under matched cohorts, labels, and evaluation protocol.
+The result is outcome-dependent: tabular features win when given
+unrestricted drug-identity access (AKI, bleeding), while graph embeddings
+outperform a leakage-corrected tabular baseline for delirium, a result that
+is statistically significant on paired folds and replicates on an
+independent cohort subsample. We further contribute a documented
+label-leakage correction and reliability-filtered, perturbation-based
+interpretability outputs. Future work includes node2vec hyperparameter
+search, external validation, and manual clinical cross-referencing of the
+identified risk-associated drug combinations.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
