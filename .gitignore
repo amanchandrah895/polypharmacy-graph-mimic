@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# MIMIC-IV derived data -- NOT pushed to a public repo per the PhysioNet
+# Credentialed Health Data Use Agreement, which prohibits public
+# redistribution of the data or patient/admission-level derived extracts.
+# See README.md "Data Access" section. Only results_aggregate/ (pure
+# aggregate statistics, no patient rows) is committed.
+results/
+
+# Run logs / executed-notebook artifacts (contain printed intermediate data,
+# regenerate by running the notebooks yourself)
+*.log
+notebooks/02_resume_from_cache_executed.ipynb
+
+# Zips / OS cruft
+*.zip
+.DS_Store
+
+# Claude Code local state
+.claude/

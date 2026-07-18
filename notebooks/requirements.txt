@@ -1,0 +1,14 @@
+google-cloud-bigquery
+google-cloud-bigquery-storage
+pandas
+networkx
+node2vec
+scikit-learn
+matplotlib
+seaborn
+statsmodels
+lifelines
+shap
+xgboost
+tqdm
+db-dtypes

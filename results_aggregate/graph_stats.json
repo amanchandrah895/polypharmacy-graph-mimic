@@ -1,0 +1,204 @@
+{
+  "node_count": 2091,
+  "edge_count": 160276,
+  "density": 0.07334967129575602,
+  "avg_clustering_coefficient": 0.0010757583455383347,
+  "num_connected_components": 5,
+  "degree_distribution_summary": {
+    "mean": 153.3008130081301,
+    "median": 49.0,
+    "max": 1573,
+    "min": 1
+  },
+  "top20_highest_degree_drugs": [
+    {
+      "drug": "0 9 sodium chloride",
+      "degree": 1573
+    },
+    {
+      "drug": "sodium chloride 0 9 flush",
+      "degree": 1546
+    },
+    {
+      "drug": "acetaminophen",
+      "degree": 1440
+    },
+    {
+      "drug": "insulin",
+      "degree": 1383
+    },
+    {
+      "drug": "potassium chloride",
+      "degree": 1379
+    },
+    {
+      "drug": "5 dextrose",
+      "degree": 1343
+    },
+    {
+      "drug": "magnesium sulfate",
+      "degree": 1341
+    },
+    {
+      "drug": "heparin",
+      "degree": 1338
+    },
+    {
+      "drug": "iso-osmotic dextrose",
+      "degree": 1304
+    },
+    {
+      "drug": "furosemide",
+      "degree": 1279
+    },
+    {
+      "drug": "vancomycin",
+      "degree": 1271
+    },
+    {
+      "drug": "senna",
+      "degree": 1251
+    },
+    {
+      "drug": "docusate sodium",
+      "degree": 1203
+    },
+    {
+      "drug": "dextrose 50",
+      "degree": 1193
+    },
+    {
+      "drug": "calcium gluconate",
+      "degree": 1188
+    },
+    {
+      "drug": "metoprolol tartrate",
+      "degree": 1167
+    },
+    {
+      "drug": "glucagon",
+      "degree": 1142
+    },
+    {
+      "drug": "lorazepam",
+      "degree": 1139
+    },
+    {
+      "drug": "ondansetron",
+      "degree": 1136
+    },
+    {
+      "drug": "hydromorphone dilaudid",
+      "degree": 1104
+    }
+  ],
+  "top20_highest_weight_edges": [
+    {
+      "drug_u": "sodium chloride 0 9 flush",
+      "drug_v": "0 9 sodium chloride",
+      "co_admin_stays": 6614
+    },
+    {
+      "drug_u": "acetaminophen",
+      "drug_v": "sodium chloride 0 9 flush",
+      "co_admin_stays": 6263
+    },
+    {
+      "drug_u": "0 9 sodium chloride",
+      "drug_v": "magnesium sulfate",
+      "co_admin_stays": 6129
+    },
+    {
+      "drug_u": "0 9 sodium chloride",
+      "drug_v": "potassium chloride",
+      "co_admin_stays": 5684
+    },
+    {
+      "drug_u": "magnesium sulfate",
+      "drug_v": "potassium chloride",
+      "co_admin_stays": 5565
+    },
+    {
+      "drug_u": "acetaminophen",
+      "drug_v": "0 9 sodium chloride",
+      "co_admin_stays": 5546
+    },
+    {
+      "drug_u": "glucagon",
+      "drug_v": "dextrose 50",
+      "co_admin_stays": 5442
+    },
+    {
+      "drug_u": "0 9 sodium chloride",
+      "drug_v": "calcium gluconate",
+      "co_admin_stays": 5394
+    },
+    {
+      "drug_u": "sodium chloride 0 9 flush",
+      "drug_v": "magnesium sulfate",
+      "co_admin_stays": 5181
+    },
+    {
+      "drug_u": "calcium gluconate",
+      "drug_v": "magnesium sulfate",
+      "co_admin_stays": 4984
+    },
+    {
+      "drug_u": "heparin",
+      "drug_v": "sodium chloride 0 9 flush",
+      "co_admin_stays": 4876
+    },
+    {
+      "drug_u": "sodium chloride 0 9 flush",
+      "drug_v": "potassium chloride",
+      "co_admin_stays": 4848
+    },
+    {
+      "drug_u": "glucagon",
+      "drug_v": "insulin",
+      "co_admin_stays": 4805
+    },
+    {
+      "drug_u": "insulin",
+      "drug_v": "dextrose 50",
+      "co_admin_stays": 4744
+    },
+    {
+      "drug_u": "0 9 sodium chloride",
+      "drug_v": "iso-osmotic dextrose",
+      "co_admin_stays": 4653
+    },
+    {
+      "drug_u": "iso-osmotic dextrose",
+      "drug_v": "vancomycin",
+      "co_admin_stays": 4596
+    },
+    {
+      "drug_u": "sodium chloride 0 9 flush",
+      "drug_v": "insulin",
+      "co_admin_stays": 4512
+    },
+    {
+      "drug_u": "sodium chloride 0 9 flush",
+      "drug_v": "iso-osmotic dextrose",
+      "co_admin_stays": 4432
+    },
+    {
+      "drug_u": "acetaminophen",
+      "drug_v": "magnesium sulfate",
+      "co_admin_stays": 4371
+    },
+    {
+      "drug_u": "glucagon",
+      "drug_v": "glucose gel",
+      "co_admin_stays": 4362
+    }
+  ],
+  "unweighted_comparison": {
+    "node_count": 2091,
+    "edge_count": 160276,
+    "density": 0.07334967129575602,
+    "avg_clustering_coefficient": 0.8595443172912509,
+    "num_connected_components": 5
+  }
+}

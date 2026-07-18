@@ -1,0 +1,11 @@
+{
+  "auroc_embedding": 0.8759611283761881,
+  "auroc_tabular_leakfree": 0.8581886226510819,
+  "observed_delta": 0.017772505725106247,
+  "n_bootstrap": 2000,
+  "delta_ci_95_low": 0.011175429691353012,
+  "delta_ci_95_high": 0.024940006177849628,
+  "ci_excludes_zero": true,
+  "approx_two_sided_p": 0.0,
+  "method": "Paired bootstrap on identical StratifiedKFold(5) OOF predictions, XGBoost, random_state=42, 2000 resamples"
+}

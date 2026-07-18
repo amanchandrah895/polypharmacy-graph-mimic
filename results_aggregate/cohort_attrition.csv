@@ -1,0 +1,6 @@
+step,n,note
+"Adult patients, first ICU stay per admission",85242,
+ICU LOS >= 24h,68013,
+"Random subsample (seed=42, compute/cost constraint)",10000,subsampled from full eligible cohort down to 10000
+>= 3 distinct generic drugs administered,9974,
+Final cohort (all labels attached),9974,
