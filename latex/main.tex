@@ -82,24 +82,56 @@ result invites.
 
 \section{Related Work}
 
-\textbf{MIMIC-based clinical prediction.} MIMIC-IV~\cite{johnson2023mimiciv}
-has enabled a large body of work on ICU outcome prediction, predominantly
-targeting mortality and length-of-stay as the outcome of interest; this
-concentration is the specific gap this paper targets by modeling
-polypharmacy-relevant adverse events instead.
+\textbf{MIMIC-based clinical prediction.} The MIMIC-III and
+MIMIC-IV~\cite{johnson2016mimiciii,johnson2023mimiciv} critical care
+databases have enabled a large body of ICU outcome-prediction research, but
+that research is heavily concentrated on a narrow set of targets.
+Harutyunyan et al.~\cite{harutyunyan2019benchmarking} formalized this as a
+standard benchmark suite of four tasks -- in-hospital mortality,
+length-of-stay, decompensation, and phenotyping -- derived from MIMIC-III,
+and the great majority of subsequent MIMIC-based deep learning papers
+evaluate against some subset of these same targets. Polypharmacy-specific
+adverse event modeling, by contrast, has received comparatively little
+direct attention despite polypharmacy's well-established mechanistic link
+to nephrotoxicity, delirium, and bleeding; this concentration on
+mortality/LOS-style targets is the specific gap this paper addresses.
 
-\textbf{Graph-based EHR modeling.} Representing patients or clinical
-entities as graphs -- and learning representations over them via methods
-such as node2vec~\cite{grover2016node2vec} -- has been explored for
-diagnosis and comorbidity modeling; we apply this framework specifically to
-drug co-administration structure, which has received comparatively less
-direct empirical comparison against tabular baselines under matched
-evaluation protocol.
+\textbf{Graph and network representation learning.} The embedding method we
+use, node2vec~\cite{grover2016node2vec}, extends
+DeepWalk~\cite{perozzi2014deepwalk} by generalizing random-walk sampling
+with biased second-order walks, and both build on the skip-gram objective
+originally developed for word embeddings~\cite{mikolov2013distributed} --
+learning a vector representation for each node such that nodes appearing in
+similar random-walk contexts receive similar embeddings. This lineage was
+first brought into the clinical setting by
+Med2Vec~\cite{choi2016med2vec}, which learns medical-code embeddings from
+the co-occurrence structure of codes within a clinical visit -- structurally
+close to how we treat drug co-occurrence within an admission -- and by
+GRAM~\cite{choi2017gram}, which supplements code embeddings with a medical
+ontology graph via attention to address data sparsity and improve
+interpretability. Both target diagnosis/procedure codes broadly rather than
+drug co-administration specifically, and neither runs a matched
+embedding-vs-tabular-baseline comparison of the kind we report here.
+
+\textbf{Polypharmacy and drug-interaction graph modeling.} The most directly
+related prior work is Decagon~\cite{zitnik2018decagon}, which models
+polypharmacy side effects with a graph convolutional network over a
+multimodal graph of protein-protein interactions, drug-protein targets, and
+drug-drug interaction edges labeled by side-effect type. Decagon operates at
+the molecular/pharmacological level -- predicting which side effect a drug
+\emph{pair} may cause from biological interaction data -- whereas our graph
+is built directly from \emph{observed} patient-level co-administration in
+ICU stays and predicts \emph{patient}-level clinical outcomes (AKI,
+delirium, bleeding) rather than drug-pair side-effect labels. The two
+approaches are complementary: Decagon's molecular graph could in principle
+be used to validate or explain associations our co-administration graph
+surfaces empirically, which we note as a concrete direction for future work
+rather than attempt here.
 
 \textbf{Interpretability.} We use SHAP~\cite{lundberg2017shap} for the
 tabular baseline's tree-based models, and a perturbation (leave-one-drug-out)
 analysis for the graph-embedding models, since raw embedding dimensions are
-not individually interpretable.
+not individually interpretable in the way SHAP requires.
 
 \section{Methods}
 \label{sec:methods}
@@ -199,11 +231,13 @@ admission:
 
 For every outcome $\times$ feature-set combination, we train four
 classifiers with fixed (untuned) hyperparameters -- logistic regression,
-random forest (300 trees), XGBoost~\cite{chen2016xgboost} (300 trees, depth
+random forest~\cite{breiman2001randomforests} (300 trees),
+XGBoost~\cite{chen2016xgboost} (300 trees, depth
 4), and a 2-layer MLP (64, 32 units) -- under stratified 5-fold
-cross-validation. We report AUROC, AUPRC, F1, and Brier score, with AUROC
-95\% confidence intervals from 1{,}000 bootstrap resamples of the pooled
-out-of-fold predictions.
+cross-validation, implemented with
+scikit-learn~\cite{pedregosa2011scikitlearn}. We report AUROC, AUPRC, F1,
+and Brier score, with AUROC 95\% confidence intervals from 1{,}000 bootstrap
+resamples of the pooled out-of-fold predictions.
 
 \subsection{Label-leakage correction}
 
@@ -344,6 +378,13 @@ label-leakage correction and reliability-filtered, perturbation-based
 interpretability outputs. Future work includes node2vec hyperparameter
 search, external validation, and manual clinical cross-referencing of the
 identified risk-associated drug combinations.
+
+\section*{Acknowledgment}
+The authors thank PhysioNet and the MIMIC-IV database creators for
+providing credentialed access to the data underlying this work. AI-assisted
+tools were used for \LaTeX{} typesetting and grammar refinement; all
+research design, analysis, and conclusions in this paper are solely the
+authors' own.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
