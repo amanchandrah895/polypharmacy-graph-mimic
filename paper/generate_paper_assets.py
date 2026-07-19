@@ -160,7 +160,7 @@ print("Saved auroc_comparison.pdf")
 # ============================================================
 # Figure 5: Top-15 risk-associated drugs per outcome (horizontal bars)
 # ============================================================
-fig, axes = plt.subplots(1, 3, figsize=(9.5, 4.2))
+fig, axes = plt.subplots(1, 3, figsize=(9.5, 3.5))
 for ax, oc in zip(axes, outcomes):
     df = pd.read_csv(os.path.join(AGG_DIR, f"top_risk_drugs_{oc}.csv")).sort_values(
         "mean_risk_contribution"
